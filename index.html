@@ -20,7 +20,7 @@
     </div>
 
     <script>
-        const ws = new WebSocket("ws://your_pico_ip"); // Change this to your Pico's IP
+        const ws = new WebSocket("ws://192.168.1.16"); // Change this to your Pico's IP
 
         ws.onmessage = function(event) {
             let data = JSON.parse(event.data);
