@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flow Sensor Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        .container { margin-top: 50px; }
+        .status { font-size: 24px; margin: 20px 0; }
+        button { padding: 10px 20px; font-size: 18px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Flow Sensor Dashboard</h1>
+        <div class="status">Flow Rate: <span id="flowRate">0</span> L/min</div>
+        <div class="status">Relay Status: <span id="relayStatus">OFF</span></div>
+        <button onclick="toggleRelay()">Toggle Relay</button>
+    </div>
+
+    <script>
+        const ws = new WebSocket("ws://your_pico_ip"); // Change this to your Pico's IP
+
+        ws.onmessage = function(event) {
+            let data = JSON.parse(event.data);
+            document.getElementById("flowRate").innerText = data.flow_rate.toFixed(2);
+            document.getElementById("relayStatus").innerText = data.relay ? "ON" : "OFF";
+        };
+
+        function toggleRelay() {
+            ws.send("TOGGLE");
+        }
+    </script>
+</body>
+</html>
