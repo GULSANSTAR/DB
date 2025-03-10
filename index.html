@@ -8,6 +8,8 @@
         body { font-family: Arial, sans-serif; text-align: center; }
         .container { margin-top: 50px; }
         .status { font-size: 24px; margin: 20px 0; }
+        .wifi { font-size: 18px; color: green; }
+        .offline { color: red; }
         button { padding: 10px 20px; font-size: 18px; }
     </style>
 </head>
@@ -16,20 +18,46 @@
         <h1>Flow Sensor Dashboard</h1>
         <div class="status">Flow Rate: <span id="flowRate">0</span> L/min</div>
         <div class="status">Relay Status: <span id="relayStatus">OFF</span></div>
-        <button onclick="toggleRelay()">Toggle Relay</button>
+        <div class="status wifi" id="wifiStatus">Checking WiFi...</div>
+        <button id="toggleButton" onclick="toggleRelay()">Toggle Relay</button>
     </div>
 
     <script>
         const ws = new WebSocket("ws://192.168.1.16"); // Change this to your Pico's IP
 
+        ws.onopen = function() {
+            document.getElementById("wifiStatus").innerText = "Connected to WiFi ✅";
+            document.getElementById("wifiStatus").classList.remove("offline");
+        };
+
         ws.onmessage = function(event) {
             let data = JSON.parse(event.data);
             document.getElementById("flowRate").innerText = data.flow_rate.toFixed(2);
             document.getElementById("relayStatus").innerText = data.relay ? "ON" : "OFF";
+            document.getElementById("wifiStatus").innerText = data.wifi_status ? "Connected to WiFi ✅" : "Disconnected ❌";
+            document.getElementById("wifiStatus").classList.toggle("offline", !data.wifi_status);
+        };
+
+        ws.onerror = function() {
+            document.getElementById("wifiStatus").innerText = "Disconnected ❌";
+            document.getElementById("wifiStatus").classList.add("offline");
         };
 
         function toggleRelay() {
+            let button = document.getElementById("toggleButton");
+            let wifiStatus = document.getElementById("wifiStatus").innerText;
+
+            if (wifiStatus.includes("Disconnected")) {
+                alert("Pico is offline! Cannot toggle relay.");
+                return;
+            }
+
+            button.innerText = "Processing...";
             ws.send("TOGGLE");
+
+            setTimeout(() => {
+                button.innerText = "Toggle Relay";
+            }, 2000);
         }
     </script>
 </body>
